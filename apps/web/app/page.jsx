@@ -1,70 +1,146 @@
 
+"use client";
+
+import { useState } from "react";
+
+const navigation = [
+  "Overview",
+  "Strategies",
+  "Backtesting",
+  "Paper Trading",
+  "Analytics",
+  "Market Research"
+];
+
+const stats = [
+  { label: "Active Strategies", value: "00", detail: "No strategies configured" },
+  { label: "Backtests Completed", value: "00", detail: "Awaiting historical data" },
+  { label: "Paper Portfolio", value: "$10,000", detail: "Virtual starting balance" },
+  { label: "Market Connections", value: "Offline", detail: "No provider connected" }
+];
+
 const features = [
   {
     title: "Strategy Research",
-    description: "Explore forex strategy concepts and educational research."
+    description: "Create, organize and evaluate forex trading strategies."
   },
   {
-    title: "Historical Testing",
-    description: "Study strategy behaviour using historical market data."
+    title: "Historical Backtesting",
+    description: "Evaluate strategy rules against historical market data."
   },
   {
-    title: "Paper Simulation",
-    description: "Practise with virtual portfolios without real-money trading."
+    title: "Paper Trading",
+    description: "Simulate trades using virtual funds without risking money."
   },
   {
     title: "Advanced Analytics",
-    description: "Explore research reports, statistics and performance analysis."
+    description: "Study drawdown, win rate, risk and performance statistics."
   }
 ];
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("Overview");
+
   return (
-    <main className="container">
-      <nav className="navbar">
-        <h2>CASSIUS <span>EA SUITE</span></h2>
-        <a href="#features">Explore</a>
-      </nav>
+    <main className="dashboard">
 
-      <section className="hero">
-        <p className="eyebrow">
-          FOREX RESEARCH • EDUCATION • ANALYTICS
-        </p>
+      <aside className="sidebar">
+        <div className="brand">
+          CASSIUS
+          <span>EA SUITE</span>
+        </div>
 
-        <h1>
-          Research the market.
-          <br />
-          <span>Understand the data.</span>
-        </h1>
+        <p className="menu-label">WORKSPACE</p>
 
-        <p className="description">
-          Discover a modern platform for forex research,
-          strategy analysis, historical testing and simulated portfolios.
-        </p>
+        <nav className="side-nav">
+          {navigation.map((item) => (
+            <button
+              key={item}
+              className={activeTab === item ? "nav-item active" : "nav-item"}
+              onClick={() => setActiveTab(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </nav>
 
-        <a className="button" href="#features">
-          Explore the platform
-        </a>
+        <div className="sidebar-bottom">
+          <span className="status-dot"></span>
+          Research environment
+          <p>Version 1.0.0</p>
+        </div>
+      </aside>
 
-        <p className="disclaimer">
-          Educational research and simulation only.
-          No live trading or guaranteed returns.
-        </p>
+      <section className="main-content">
+
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">CASSIUS TECHNOLOGIES</p>
+            <h2>EA Suite Workspace</h2>
+          </div>
+
+          <div className="profile">
+            <span className="online-dot"></span>
+            SYSTEM READY
+          </div>
+        </header>
+
+        <section className="welcome">
+          <div>
+            <p className="eyebrow">TRADING RESEARCH PLATFORM</p>
+            <h1>{activeTab}</h1>
+            <p>
+              Your professional environment for strategy research,
+              market analysis and portfolio simulation.
+            </p>
+          </div>
+        </section>
+
+        <section className="stats-grid">
+          {stats.map((stat) => (
+            <article className="stat-card" key={stat.label}>
+              <p>{stat.label}</p>
+              <h2>{stat.value}</h2>
+              <span>{stat.detail}</span>
+            </article>
+          ))}
+        </section>
+
+        <section className="section-heading">
+          <div>
+            <p className="eyebrow">PLATFORM MODULES</p>
+            <h2>Research and Development</h2>
+          </div>
+        </section>
+
+        <section className="feature-grid">
+          {features.map((feature, index) => (
+            <article className="module-card" key={feature.title}>
+              <span className="module-number">
+                0{index + 1}
+              </span>
+
+              <h3>{feature.title}</h3>
+
+              <p>{feature.description}</p>
+
+              <button
+                onClick={() => setActiveTab(
+                  ["Strategies", "Backtesting", "Paper Trading", "Analytics"][index]
+                )}
+              >
+                Open module →
+              </button>
+            </article>
+          ))}
+        </section>
+
+        <footer className="footer">
+          <span>© {new Date().getFullYear()} CASSIUS EA SUITE</span>
+          <span>Educational research and simulation environment</span>
+        </footer>
+
       </section>
-
-      <section id="features" className="features">
-        {features.map((feature) => (
-          <article className="feature-card" key={feature.title}>
-            <h3>{feature.title}</h3>
-            <p>{feature.description}</p>
-          </article>
-        ))}
-      </section>
-
-      <footer>
-        © {new Date().getFullYear()} CASSIUS EA SUITE.
-        All rights reserved.
-      </footer>
     </main>
   );
 }
