@@ -1,0 +1,14 @@
+
+{
+  "name": "cassius-ea-suite",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=cassius-ea-web",
+    "build": "npm run build --workspace=cassius-ea-web",
+    "start": "npm run start --workspace=cassius-ea-web"
+  }
+}
