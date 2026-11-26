@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
 
 const navigation = [
@@ -40,26 +41,51 @@ const features = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState("Overview");
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
-    async function loadUser() {
-      const { data, error } = await supabase.auth.getUser();
+    let mounted = true;
 
-      if (error || !data.user) {
-        window.location.href = "/login";
-        return;
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/login");
       }
+    });
 
-      setUserEmail(data.user.email || "Authenticated user");
-      setLoading(false);
+    async function loadUser() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+
+        if (!mounted) return;
+
+        if (error || !data.user) {
+          router.replace("/login");
+          return;
+        }
+
+        setUserEmail(data.user.email || "Authenticated user");
+        setLoading(false);
+      } catch (error) {
+        if (mounted) {
+          router.replace("/login");
+        }
+      }
     }
 
     loadUser();
-  }, []);
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   async function handleLogout() {
     setSigningOut(true);
@@ -72,7 +98,7 @@ export default function Home() {
       return;
     }
 
-    window.location.href = "/login";
+    router.replace("/login");
   }
 
   if (loading) {
@@ -97,7 +123,11 @@ export default function Home() {
           {navigation.map((item) => (
             <button
               key={item}
-              className={activeTab === item ? "nav-item active" : "nav-item"}
+              className={
+                activeTab === item
+                  ? "nav-item active"
+                  : "nav-item"
+              }
               onClick={() => setActiveTab(item)}
             >
               {item}
@@ -133,7 +163,7 @@ export default function Home() {
                 color: "#fff",
                 border: "none",
                 borderRadius: "6px",
-                cursor: "pointer"
+                cursor: signingOut ? "not-allowed" : "pointer"
               }}
             >
               {signingOut ? "Signing out..." : "Logout"}
@@ -145,6 +175,7 @@ export default function Home() {
           <div>
             <p className="eyebrow">TRADING RESEARCH PLATFORM</p>
             <h1>{activeTab}</h1>
+
             <p>
               Welcome, {userEmail}. Your professional environment
               for strategy research, market analysis and portfolio simulation.
@@ -181,9 +212,16 @@ export default function Home() {
               <p>{feature.description}</p>
 
               <button
-                onClick={() => setActiveTab(
-                  ["Strategies", "Backtesting", "Paper Trading", "Analytics"][index]
-                )}
+                onClick={() =>
+                  setActiveTab(
+                    [
+                      "Strategies",
+                      "Backtesting",
+                      "Paper Trading",
+                      "Analytics"
+                    ][index]
+                  )
+                }
               >
                 Open module →
               </button>
@@ -192,8 +230,13 @@ export default function Home() {
         </section>
 
         <footer className="footer">
-          <span>© {new Date().getFullYear()} CASSIUS EA SUITE</span>
-          <span>Educational research and simulation environment</span>
+          <span>
+            © {new Date().getFullYear()} CASSIUS EA SUITE
+          </span>
+
+          <span>
+            Educational research and simulation environment
+          </span>
         </footer>
       </section>
     </main>
