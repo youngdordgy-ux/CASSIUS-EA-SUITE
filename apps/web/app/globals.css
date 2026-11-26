@@ -329,3 +329,113 @@ button {
     flex-direction: column;
   }
 }
+
+/* CASSIUS EA SUITE AUTHENTICATION */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #05070c;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 38px;
+  background: #0c111b;
+  border: 1px solid #1c2b42;
+  border-radius: 18px;
+}
+
+.auth-brand {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 35px;
+}
+
+.auth-brand span {
+  display: block;
+  color: #438cff;
+  font-size: 12px;
+  letter-spacing: 5px;
+}
+
+.auth-card h1 {
+  font-size: 30px;
+  margin: 12px 0;
+}
+
+.auth-description {
+  color: #929bad;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-card label {
+  font-size: 13px;
+  color: #c3ccdc;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 14px;
+  color: white;
+  background: #080d16;
+  border: 1px solid #26364d;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.auth-card form button {
+  padding: 15px;
+  background: #1769df;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-card button:disabled {
+  opacity: 0.6;
+}
+
+.auth-switch,
+.back-link {
+  display: block;
+  margin-top: 22px;
+  text-align: center;
+  color: #70aaff;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.auth-switch {
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-message {
+  margin-top: 18px;
+  color: #70aaff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 25px;
+  }
+}
