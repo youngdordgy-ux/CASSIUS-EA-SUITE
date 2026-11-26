@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const navigation = [
   "Overview",
@@ -40,10 +41,50 @@ const features = [
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("Overview");
+  const [userEmail, setUserEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error || !data.user) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setUserEmail(data.user.email || "Authenticated user");
+      setLoading(false);
+    }
+
+    loadUser();
+  }, []);
+
+  async function handleLogout() {
+    setSigningOut(true);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      alert("Unable to sign out. Please try again.");
+      setSigningOut(false);
+      return;
+    }
+
+    window.location.href = "/login";
+  }
+
+  if (loading) {
+    return (
+      <main className="dashboard">
+        <p>Loading CASSIUS EA SUITE...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="dashboard">
-
       <aside className="sidebar">
         <div className="brand">
           CASSIUS
@@ -72,7 +113,6 @@ export default function Home() {
       </aside>
 
       <section className="main-content">
-
         <header className="topbar">
           <div>
             <p className="eyebrow">CASSIUS TECHNOLOGIES</p>
@@ -82,6 +122,22 @@ export default function Home() {
           <div className="profile">
             <span className="online-dot"></span>
             SYSTEM READY
+
+            <button
+              onClick={handleLogout}
+              disabled={signingOut}
+              style={{
+                marginLeft: "15px",
+                padding: "9px 14px",
+                background: "#1769df",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer"
+              }}
+            >
+              {signingOut ? "Signing out..." : "Logout"}
+            </button>
           </div>
         </header>
 
@@ -90,8 +146,8 @@ export default function Home() {
             <p className="eyebrow">TRADING RESEARCH PLATFORM</p>
             <h1>{activeTab}</h1>
             <p>
-              Your professional environment for strategy research,
-              market analysis and portfolio simulation.
+              Welcome, {userEmail}. Your professional environment
+              for strategy research, market analysis and portfolio simulation.
             </p>
           </div>
         </section>
@@ -139,7 +195,6 @@ export default function Home() {
           <span>© {new Date().getFullYear()} CASSIUS EA SUITE</span>
           <span>Educational research and simulation environment</span>
         </footer>
-
       </section>
     </main>
   );
