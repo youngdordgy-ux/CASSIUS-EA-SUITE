@@ -3,16 +3,19 @@
   "name": "cassius-ea-web",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-  "@supabase/ssr": "^0.6.1",
-  "@supabase/supabase-js": "^2.49.1",
-  "next": "^14.2.15",
-  "react": "^18.3.1",
-  "react-dom": "^18.3.1"
-}
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.1",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
 }
