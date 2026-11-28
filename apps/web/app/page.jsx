@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
 
@@ -14,29 +14,26 @@ const navigation = [
   "Market Research"
 ];
 
-const stats = [
-  { label: "Active Strategies", value: "00", detail: "No strategies configured" },
-  { label: "Backtests Completed", value: "00", detail: "Awaiting historical data" },
-  { label: "Paper Portfolio", value: "$10,000", detail: "Virtual starting balance" },
-  { label: "Market Connections", value: "Offline", detail: "No provider connected" }
-];
-
 const features = [
   {
     title: "Strategy Research",
-    description: "Create, organize and evaluate forex trading strategies."
+    description: "Create, organize and evaluate forex trading strategies.",
+    tab: "Strategies"
   },
   {
     title: "Historical Backtesting",
-    description: "Evaluate strategy rules against historical market data."
+    description: "Evaluate strategy rules against historical market data.",
+    tab: "Backtesting"
   },
   {
     title: "Paper Trading",
-    description: "Simulate trades using virtual funds without risking money."
+    description: "Simulate trades using virtual funds without risking money.",
+    tab: "Paper Trading"
   },
   {
     title: "Advanced Analytics",
-    description: "Study drawdown, win rate, risk and performance statistics."
+    description: "Study drawdown, win rate, risk and performance statistics.",
+    tab: "Analytics"
   }
 ];
 
@@ -46,7 +43,60 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [databaseError, setDatabaseError] = useState("");
+
+  const [stats, setStats] = useState({
+    strategies: 0,
+    backtests: 0,
+    trades: 0,
+    candles: 0
+  });
+
+  const loadMetrics = useCallback(async () => {
+    setRefreshing(true);
+    setDatabaseError("");
+
+    try {
+      const results = await Promise.all([
+        supabase
+          .from("strategies")
+          .select("*", { count: "exact", head: true }),
+
+        supabase
+          .from("backtest_runs")
+          .select("*", { count: "exact", head: true }),
+
+        supabase
+          .from("demo_trades")
+          .select("*", { count: "exact", head: true }),
+
+        supabase
+          .from("market_candles")
+          .select("*", { count: "exact", head: true })
+      ]);
+
+      const errors = results.filter(result => result.error);
+
+      if (errors.length > 0) {
+        setDatabaseError(
+          errors.map(result => result.error.message).join(" | ")
+        );
+      }
+
+      setStats({
+        strategies: results[0].error ? null : results[0].count ?? 0,
+        backtests: results[1].error ? null : results[1].count ?? 0,
+        trades: results[2].error ? null : results[2].count ?? 0,
+        candles: results[3].error ? null : results[3].count ?? 0
+      });
+    } catch (error) {
+      setDatabaseError(error.message || "Unable to load database information.");
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -59,7 +109,7 @@ export default function Home() {
       }
     });
 
-    async function loadUser() {
+    async function initialize() {
       try {
         const { data, error } = await supabase.auth.getUser();
 
@@ -71,7 +121,12 @@ export default function Home() {
         }
 
         setUserEmail(data.user.email || "Authenticated user");
-        setLoading(false);
+
+        await loadMetrics();
+
+        if (mounted) {
+          setLoading(false);
+        }
       } catch (error) {
         if (mounted) {
           router.replace("/login");
@@ -79,13 +134,13 @@ export default function Home() {
       }
     }
 
-    loadUser();
+    initialize();
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, loadMetrics]);
 
   async function handleLogout() {
     setSigningOut(true);
@@ -109,6 +164,29 @@ export default function Home() {
     );
   }
 
+  const cards = [
+    {
+      label: "Active Strategies",
+      value: stats.strategies ?? "—",
+      detail: "Records in your strategies table"
+    },
+    {
+      label: "Backtests",
+      value: stats.backtests ?? "—",
+      detail: "Recorded backtest runs"
+    },
+    {
+      label: "Paper Trades",
+      value: stats.trades ?? "—",
+      detail: "Recorded simulated trades"
+    },
+    {
+      label: "Historical Candles",
+      value: stats.candles ?? "—",
+      detail: "Stored market candle records"
+    }
+  ];
+
   return (
     <main className="dashboard">
       <aside className="sidebar">
@@ -120,7 +198,7 @@ export default function Home() {
         <p className="menu-label">WORKSPACE</p>
 
         <nav className="side-nav">
-          {navigation.map((item) => (
+          {navigation.map(item => (
             <button
               key={item}
               className={
@@ -151,7 +229,7 @@ export default function Home() {
 
           <div className="profile">
             <span className="online-dot"></span>
-            SYSTEM READY
+            AUTHENTICATED
 
             <button
               onClick={handleLogout}
@@ -173,22 +251,55 @@ export default function Home() {
 
         <section className="welcome">
           <div>
-            <p className="eyebrow">TRADING RESEARCH PLATFORM</p>
+            <p className="eyebrow">
+              TRADING RESEARCH PLATFORM
+            </p>
+
             <h1>{activeTab}</h1>
 
             <p>
-              Welcome, {userEmail}. Your professional environment
-              for strategy research, market analysis and portfolio simulation.
+              Welcome, {userEmail}. Your workspace for strategy
+              research, market analysis and portfolio simulation.
             </p>
           </div>
+
+          <button
+            onClick={loadMetrics}
+            disabled={refreshing}
+            style={{
+              padding: "12px 18px",
+              background: "#1769df",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            {refreshing ? "Refreshing..." : "Refresh Data"}
+          </button>
         </section>
 
+        {databaseError && (
+          <div
+            style={{
+              padding: "14px",
+              marginBottom: "20px",
+              background: "#3b2020",
+              color: "#ffb5b5",
+              borderRadius: "8px",
+              overflowWrap: "anywhere"
+            }}
+          >
+            Database warning: {databaseError}
+          </div>
+        )}
+
         <section className="stats-grid">
-          {stats.map((stat) => (
-            <article className="stat-card" key={stat.label}>
-              <p>{stat.label}</p>
-              <h2>{stat.value}</h2>
-              <span>{stat.detail}</span>
+          {cards.map(card => (
+            <article className="stat-card" key={card.label}>
+              <p>{card.label}</p>
+              <h2>{card.value}</h2>
+              <span>{card.detail}</span>
             </article>
           ))}
         </section>
@@ -212,16 +323,7 @@ export default function Home() {
               <p>{feature.description}</p>
 
               <button
-                onClick={() =>
-                  setActiveTab(
-                    [
-                      "Strategies",
-                      "Backtesting",
-                      "Paper Trading",
-                      "Analytics"
-                    ][index]
-                  )
-                }
+                onClick={() => setActiveTab(feature.tab)}
               >
                 Open module →
               </button>
